@@ -55,4 +55,4 @@ app.post('/api/auth/logout', (req,res) => {
 app.get('/api/auth', (req,res) => {
     return req.user? res.send(req.user): res.sendStatus(401);
 })
-
+ 
