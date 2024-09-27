@@ -8,7 +8,7 @@ import User from '../models/users.mjs';
 const router = Router();
 
 router.post(
-  "/api/users",
+  "/api/auth/signup",
   checkSchema(createUserValidationSchema),
   async (req, res) => {
     const result= validationResult(req);
