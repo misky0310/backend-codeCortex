@@ -7,6 +7,7 @@ import passport from 'passport';
 import "./strategies/local-strategy.mjs";
 import MongoStore from 'connect-mongo';
 import mongoose from 'mongoose';
+import cors from 'cors';
 
 const app=express();
 const PORT=5052;
@@ -16,6 +17,7 @@ app.listen(PORT, () => {
 
 await connectDB();
 app.use(express.json());
+app.use(cors());
 
 app.use(cookieParser('iCYyuGwZlmM0b4K42yMhyeG5bnLNSMAzlNtn51NmByM='))
 
