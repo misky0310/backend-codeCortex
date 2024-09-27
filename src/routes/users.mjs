@@ -27,4 +27,14 @@ router.post(
   }
 );
 
+router.post("/emotion/receive-emotion/audio", async(req, res) => { 
+  console.log(req.body);
+  return res.status(200).send("Success");
+})
+
+router.post("/emotion/receive-emotion/face", async(req, res) => {
+  console.log(req.body);
+  return res.status(200).send("Success");
+})
+
 export default router;
