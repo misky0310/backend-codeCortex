@@ -26,16 +26,6 @@ router.post(
 
   }
 );
-router.get('/api/users', (req,res) => {
-    console.log(req.session.id);
-    req.sessionStore.get(req.session.id, (err,data) => {
-        if(err)
-            console.log(err);
-        console.log("Session Store");
-        console.log(data);
-    })
-    res.sendStatus(200);
-})
 
 
 export default router;
