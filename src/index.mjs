@@ -17,7 +17,12 @@ app.listen(PORT, () => {
 
 await connectDB();
 app.use(express.json());
-app.use(cors());
+const corsOptions = {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  };
+app.use(cors(corsOptions));
 
 app.use(cookieParser('iCYyuGwZlmM0b4K42yMhyeG5bnLNSMAzlNtn51NmByM='))
 
@@ -41,6 +46,7 @@ app.use(userRouter)
 
 
 app.post('/api/auth/login', passport.authenticate('local'), (req,res) => {
+    console.log("User",req.user);
     return res.sendStatus(200);
 })
 

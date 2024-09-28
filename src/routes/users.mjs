@@ -37,17 +37,18 @@ router.post("/emotion/receive-emotion/face", async (req, res) => {
 });
 
 router.post("/api/user/capture", async (req, res) => {
-  if (!req.user) {
+  const { user, emotion_data } = req.body;
+  if (!user) {
     return res.status(401).send("Unauthorized");
   }
-
-  const id = req.user._id;
-  const { happy, sad, neutral } = req.body;
-
+  const userDB = await User.find({username: user});
+  const id = userDB[0]._id;
+  const { Happy, Sad, Neutral } = emotion_data;
+ 
   const emotions = {
-    happy: happy,
-    sad: sad,
-    neutral: neutral,
+    happy: Happy,
+    sad: Sad,
+    neutral: Neutral,
   };
 
   try {
@@ -65,24 +66,22 @@ router.post("/api/user/capture", async (req, res) => {
         upsert: true,
       }
     );
-
-    if (updatedVid.emotions.sad>=20) {
-      return res.status(200).json({msg:'You seem to be sad. Would you like to talk to someone?'});
-    }
-    return res.status(200).send("Emotions updated");
+    return res.status(200).send(updatedVid);
   } catch (error) {
     console.error(error);
     return res.status(500).send(error);
   }
 });
 
-router.get("/api/emotions", async (req, res) => {
-  if (!req.user) {
+router.post("/api/emotions", async (req, res) => {
+  const { username } = req.body;
+  if (!username) {
     return res.status(401).send("Unauthorized");
   }
 
-  const id = req.user._id;
-
+  const user = await User.findOne({ username });
+  const id = user._id;
+  console.log(id);
   try {
     const foundUser = await Videodata.findOne({ user: id });
     const user = await User.findById(id);
