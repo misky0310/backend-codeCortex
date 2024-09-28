@@ -26,78 +26,89 @@ router.post(
   }
 );
 
-router.post("/emotion/receive-emotion/audio", async(req, res) => { 
+router.post("/emotion/receive-emotion/audio", async (req, res) => {
   console.log(req.body);
   return res.status(200).send("Success");
-})
+});
 
-router.post("/emotion/receive-emotion/face", async(req, res) => {
+router.post("/emotion/receive-emotion/face", async (req, res) => {
   console.log(req.body);
   return res.status(200).send("Success");
-})
+});
 
 router.post("/api/user/capture", async (req, res) => {
+  if (!req.user) {
+    return res.status(401).send("Unauthorized");
+  }
 
-    if(!req.user) {
-      return res.status(401).send("Unauthorized");
-    }
+  const id = req.user._id;
+  const { happy, sad, neutral } = req.body;
 
-    const id = req.user._id;
-    const { happy, sad, neutral } = req.body;
-  
-    const emotions = {
-      happy: happy,
-      sad: sad,
-      neutral: neutral
-    };
-  
-    try {
-      const updatedVid = await Videodata.findOneAndUpdate(
-        { user: id }, 
-        {
-          $inc: { 
-            'emotions.happy': emotions.happy, 
-            'emotions.sad': emotions.sad, 
-            'emotions.neutral': emotions.neutral 
-          }
+  const emotions = {
+    happy: happy,
+    sad: sad,
+    neutral: neutral,
+  };
+
+  try {
+    const updatedVid = await Videodata.findOneAndUpdate(
+      { user: id },
+      {
+        $inc: {
+          "emotions.happy": emotions.happy,
+          "emotions.sad": emotions.sad,
+          "emotions.neutral": emotions.neutral,
         },
-        { 
-          new: true,
-          upsert: true
-        }
-      );
-  
-      if (updatedVid) {
-        return res.status(200).json(updatedVid);  
+      },
+      {
+        new: true,
+        upsert: true,
       }
-    } catch (error) {
-      console.error(error);
-      return res.status(500).send(error); 
+    );
+
+    if (updatedVid.emotions.sad>=20) {
+      return res.status(200).json({msg:'You seem to be sad. Would you like to talk to someone?'});
     }
-  });
-  
+    return res.status(200).send("Emotions updated");
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send(error);
+  }
+});
 
-router.get('/api/emotions', async (req,res) => {
-    if(!req.user) {
-      return res.status(401).send("Unauthorized");
-    }
+router.get("/api/emotions", async (req, res) => {
+  if (!req.user) {
+    return res.status(401).send("Unauthorized");
+  }
 
-    const id=req.user._id;
+  const id = req.user._id;
 
-    const foundUser=await Videodata.findOne({user:id});
-    const user=await User.findById(id);
-    const username=user.username;
+  try {
+    const foundUser = await Videodata.findOne({ user: id });
+    const user = await User.findById(id);
+    const username = user.username;
 
-    const total=foundUser.emotions.happy+foundUser.emotions.sad+foundUser.emotions.neutral;
+    const total =
+      foundUser.emotions.happy +
+      foundUser.emotions.sad +
+      foundUser.emotions.neutral;
 
-    console.log(`Hello ${username} : - ` );
-    console.log("HAPPY = ",foundUser.emotions.happy*100/total,"%");
-    console.log("SAD = ",foundUser.emotions.sad*100/total,"%");
-    console.log("NEUTRAL = ",foundUser.emotions.neutral*100/total,"%");
-    console.log(foundUser.emotions);
+    const percentages = {
+      happy: (foundUser.emotions.happy * 100) / total,
+      sad: (foundUser.emotions.sad * 100) / total,
+      neutral: (foundUser.emotions.neutral * 100) / total,
+    };
 
-    return res.status(200).send(foundUser.emotions);
-
-})
+    return res.status(200).json({
+      username,
+      emotions: foundUser.emotions,
+      percentages,
+      total,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Error fetching emotions data");
+  }
+});
 
 export default router;
