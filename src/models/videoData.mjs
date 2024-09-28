@@ -6,7 +6,7 @@ const videoDataSchema = new mongoose.Schema({
         ref:"User"
     },
     emotions:{
-        type:Array,
+        type:Object,
     },
 },{createdAt:true});
 

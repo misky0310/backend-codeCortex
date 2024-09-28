@@ -37,31 +37,67 @@ router.post("/emotion/receive-emotion/face", async(req, res) => {
 })
 
 router.post("/api/user/capture", async (req, res) => {
-  const id = req.user._id;
-  console.log("id", id);
-  const { emotions } = req.body;
 
-  try {
-    const foundVid = await Videodata.findOne({ user: id });
-
-    if (!foundVid) {
-      const newVid = new Videodata({ user: id });
-      newVid.emotions.push(emotions);
-      await newVid.save();
-      return res.status(201).send(newVid);
-    } 
-
-    else {
-      foundVid.emotions.push(emotions);
-      await foundVid.save();
-      return res.status(200).send(foundVid);
+    if(!req.user) {
+      return res.status(401).send("Unauthorized");
     }
-  }
 
-  catch (error) {
-    console.log(error);
-    return res.status(500).send(error);
-  }
-});
+    const id = req.user._id;
+    const { happy, sad, neutral } = req.body;
+  
+    const emotions = {
+      happy: happy,
+      sad: sad,
+      neutral: neutral
+    };
+  
+    try {
+      const updatedVid = await Videodata.findOneAndUpdate(
+        { user: id }, 
+        {
+          $inc: { 
+            'emotions.happy': emotions.happy, 
+            'emotions.sad': emotions.sad, 
+            'emotions.neutral': emotions.neutral 
+          }
+        },
+        { 
+          new: true,
+          upsert: true
+        }
+      );
+  
+      if (updatedVid) {
+        return res.status(200).json(updatedVid);  
+      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).send(error); 
+    }
+  });
+  
+
+router.get('/api/emotions', async (req,res) => {
+    if(!req.user) {
+      return res.status(401).send("Unauthorized");
+    }
+
+    const id=req.user._id;
+
+    const foundUser=await Videodata.findOne({user:id});
+    const user=await User.findById(id);
+    const username=user.username;
+
+    const total=foundUser.emotions.happy+foundUser.emotions.sad+foundUser.emotions.neutral;
+
+    console.log(`Hello ${username} : - ` );
+    console.log("HAPPY = ",foundUser.emotions.happy*100/total,"%");
+    console.log("SAD = ",foundUser.emotions.sad*100/total,"%");
+    console.log("NEUTRAL = ",foundUser.emotions.neutral*100/total,"%");
+    console.log(foundUser.emotions);
+
+    return res.status(200).send(foundUser.emotions);
+
+})
 
 export default router;
